@@ -1,0 +1,21 @@
+# AISchemaGate contract for Gemma's output. The model's JSON must pass this
+# before anything lands in your morning report.
+version: "1.0"
+name: "morning_summary"
+description: "Two-line morning summary plus suggested fixes, written by a local model"
+ontology:
+  entities:
+    - {name: status, type: string, required: true, enum: ["green", "yellow", "red"]}
+    - {name: line1, type: string, required: true, min_length: 10, max_length: 160}
+    - {name: line2, type: string, required: true, min_length: 10, max_length: 160}
+    - name: fixes
+      type: array
+      required: true
+      items:
+        name: fix
+        type: object
+        properties:
+          - {name: file, type: string, required: true, min_length: 1}
+          - {name: field, type: string, required: true, min_length: 1}
+          - {name: kind, type: string, required: true, enum: ["fix_data", "change_contract", "investigate"]}
+          - {name: suggestion, type: string, required: true, min_length: 5, max_length: 240}

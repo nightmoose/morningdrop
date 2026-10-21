@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "morningdrop"
+version = "0.1.0"
+description = "A local overnight agent: DataContractGate checks last night's data drops, a local Gemma model writes a two-line morning summary, and AISchemaGate checks Gemma."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Alex Suarez" }]
+dependencies = [
+  "contractgate>=0.4.0",
+  "aischemagate>=0.4.0",
+  "PyYAML>=6.0",
+  "httpx>=0.25",
+]
+
+[project.optional-dependencies]
+sentry = ["sentry-sdk>=2.0"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+morningdrop = "morningdrop.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["morningdrop*"]
+
+[tool.setuptools.package-data]
+morningdrop = ["*.yaml"]

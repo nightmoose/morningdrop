@@ -1,0 +1,10 @@
+# MorningDrop config. Paths are relative to this file.
+watch: samples/drops        # folder your exports land in overnight
+contracts: contracts        # DataContractGate YAML contracts, one per dataset
+reports: reports            # morning reports land here
+state: .morningdrop/state.json
+max_retries: 2              # AISchemaGate repair attempts before falling back
+llm:
+  backend: ollama           # ollama | openai (any OpenAI-compatible server) | mock
+  base_url: http://localhost:11434
+  model: gemma3:4b          # gemma3:1b / gemma3:270m on small machines

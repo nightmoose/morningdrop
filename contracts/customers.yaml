@@ -1,0 +1,10 @@
+version: "1.0"
+name: "customers"
+description: "Customer master records, one JSON object per line"
+ontology:
+  entities:
+    - {name: customer_id, type: string, required: true, pattern: "^cus_[0-9]{5}$"}
+    - {name: email, type: string, required: true, pattern: "^[^@\\s]+@[^@\\s]+\\.[a-z]{2,}$"}
+    - {name: country, type: string, required: true, pattern: "^[A-Z]{2}$"}
+    - {name: signup_date, type: string, required: true, pattern: "^\\d{4}-\\d{2}-\\d{2}$"}
+    - {name: marketing_opt_in, type: boolean, required: true}

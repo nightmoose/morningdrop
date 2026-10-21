@@ -1,0 +1,13 @@
+version: "1.0"
+name: "orders"
+description: "Nightly order export from the storefront"
+ontology:
+  entities:
+    - {name: order_id, type: string, required: true, pattern: "^ord_[0-9]{6}$"}
+    - {name: customer_id, type: string, required: true, pattern: "^cus_[0-9]{5}$"}
+    - {name: order_date, type: string, required: true, pattern: "^\\d{4}-\\d{2}-\\d{2}$"}
+    - {name: sku, type: string, required: true, pattern: "^SKU-[0-9]{4}$"}
+    - {name: quantity, type: integer, required: true, min: 1, max: 500}
+    - {name: unit_price, type: float, required: true, min: 0.01, max: 10000}
+    - {name: currency, type: string, required: true, enum: ["USD", "EUR", "GBP"]}
+    - {name: status, type: string, required: true, enum: ["placed", "paid", "shipped", "refunded"]}
