@@ -147,7 +147,8 @@ def fallback(reports: List[FileReport]) -> Summary:
     bad = [r for r in by_severity(reports) if r.status != "green"]
     worst = worst_status(reports)
     total_failed = sum(r.failed for r in reports)
-    line1 = f"{len(reports)} drops checked overnight; {total_failed} rows failed their contracts."
+    line1 = (f"{len(reports)} drop(s) checked overnight; {total_failed} rows failed their contracts."
+             if total_failed else f"{len(reports)} drop(s) checked overnight; every row passed.")
     if bad:
         r = bad[0]
         top = r.violations.most_common(1)
@@ -164,6 +165,11 @@ def fallback(reports: List[FileReport]) -> Summary:
 
 
 def summarize(reports: List[FileReport], llm: LLM, max_retries: int = 2) -> Summary:
+    if all(r.status == "green" for r in reports):
+        # A quiet night doesn't need a model. The laziest correct answer wins.
+        s = fallback(reports)
+        s.source = "quiet-night"
+        return s
     contract = _summary_contract()
     facts = build_facts(reports)
     messages = [

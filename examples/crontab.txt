@@ -1,0 +1,3 @@
+# Run MorningDrop at 5:30 every morning, after the nightly exports land.
+# `crontab -e`, then paste (fix the paths):
+30 5 * * * cd /path/to/your/morningdrop && .venv/bin/morningdrop run >> .morningdrop/cron.log 2>&1

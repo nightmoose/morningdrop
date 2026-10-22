@@ -1,0 +1,12 @@
+# systemd (Linux): watch mode, polling every 5 minutes.
+# ~/.config/systemd/user/morningdrop.service, then: systemctl --user enable --now morningdrop
+[Unit]
+Description=MorningDrop overnight data-drop checker
+
+[Service]
+WorkingDirectory=%h/morningdrop
+ExecStart=%h/morningdrop/.venv/bin/morningdrop watch --every 300
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

@@ -64,20 +64,19 @@ class LLM:
 
 
 def default_mock(messages: Messages) -> str:
-    """Stand-in for Gemma that reads the facts block and answers in shape."""
+    """Stand-in for Gemma that reads the FACTS block and answers in shape.
+    Files in FACTS arrive worst-first."""
     facts = json.loads(messages[-1]["content"].split("FACTS:", 1)[1])
-    files = facts["files"]
-    rank = {"red": 0, "yellow": 1, "green": 2}
-    bad = sorted((f for f in files if f["failed"] or f["error"]), key=lambda f: (rank[f["status"]], -f["failed"]))
-    fixes = []
-    for f in bad:
-        for v in f["top_violations"][:2]:
-            fixes.append({"file": f["file"], "field": v["field"], "kind": "fix_data",
-                          "suggestion": f"Check upstream {v['field']}: {v['kind']} on {v['count']} row(s)."})
-    status = "red" if any(f["status"] == "red" for f in files) else ("yellow" if bad else "green")
-    return json.dumps({
-        "status": status,
-        "line1": f"{len(files)} drops checked overnight, {len(bad)} need attention.",
-        "line2": (f"Start with {bad[0]['file']}." if bad else "Nothing to do. Go back to sleep."),
-        "fixes": fixes,
-    })
+    bad = [f for f in facts["files"] if f["failed"] or f["error"]]
+    fixes = [{"file": f["file"], "field": v["field"], "kind": "fix_data",
+              "suggestion": f"Check upstream {v['field']}: {v['kind']} on {v['count']} row(s)."}
+             for f in bad for v in f["top_violations"][:2]]
+    if bad:
+        w = bad[0]
+        line1 = f"{w['file']}: {w['failed']} of {w['rows']} rows failed their contract overnight."
+        line2 = f"Start with {w['top_violations'][0]['field']} in {w['file']}." if w["top_violations"] \
+            else f"Start with {w['file']}: {w['error']}"
+    else:
+        line1, line2 = "Every drop passed its contract overnight.", "Nothing to do. Go back to sleep."
+    return json.dumps({"status": facts["worst_status"], "line1": line1[:150], "line2": line2[:150],
+                       "fixes": fixes})

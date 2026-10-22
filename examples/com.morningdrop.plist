@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- macOS: cp to ~/Library/LaunchAgents/ then `launchctl load ~/Library/LaunchAgents/com.morningdrop.plist` -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.morningdrop</string>
+  <key>WorkingDirectory</key><string>/Users/you/morningdrop</string>
+  <key>ProgramArguments</key>
+  <array><string>/Users/you/morningdrop/.venv/bin/morningdrop</string><string>run</string></array>
+  <key>StartCalendarInterval</key><dict><key>Hour</key><integer>5</integer><key>Minute</key><integer>30</integer></dict>
+  <key>StandardOutPath</key><string>/Users/you/morningdrop/.morningdrop/launchd.log</string>
+  <key>StandardErrorPath</key><string>/Users/you/morningdrop/.morningdrop/launchd.log</string>
+</dict>
+</plist>

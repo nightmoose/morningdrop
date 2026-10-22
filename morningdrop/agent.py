@@ -17,7 +17,7 @@ from .drops import find_new, load_records
 from .gate import FileReport, Gatekeeper
 from .infer import infer_contract
 from .llm import LLM, LLMConfig
-from .summarize import Summary, summarize
+from .summarize import Summary, by_severity, summarize
 
 
 @dataclass
@@ -103,10 +103,10 @@ def render_markdown(reports: List[FileReport], s: Summary, now: datetime, model:
         out.append("")
     out += ["## Drops", "", "| File | Contract | Rows | Passed | Failed | Status |",
             "|---|---|---:|---:|---:|---|"]
-    for r in reports:
+    for r in by_severity(reports):
         out.append(f"| `{r.file}` | {r.contract or '—'} | {r.rows} | {r.passed} | {r.failed} | {ICON[r.status]} |")
     out.append("")
-    for r in reports:
+    for r in by_severity(reports):
         if r.violations or r.error or r.inferred_contract:
             out += [f"### {r.file}", ""]
             if r.error:
@@ -120,6 +120,7 @@ def render_markdown(reports: List[FileReport], s: Summary, now: datetime, model:
         out += [f"<sub>AISchemaGate quarantined {len(s.dropped_fixes)} ungrounded suggestion(s) from the model; see the JSON report.</sub>", ""]
     how = (f"written by `{model}` on attempt {s.attempts}, checked by AISchemaGate"
            if s.source == "model" else
+           "skipped: every drop passed, so the model was not woken up" if s.source == "quiet-night" else
            f"template fallback (model output rejected {len(s.rejections)}x by AISchemaGate)")
     out.append(f"<sub>Summary {how}. Rows validated locally with DataContractGate. Nothing left this machine.</sub>")
     return "\n".join(out) + "\n"

@@ -1,0 +1,33 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install -e '.[dev]'
+      - run: pytest -q
+      - name: Overnight run on the sample drops (mock model)
+        run: MORNINGDROP_LLM_BACKEND=mock morningdrop run && cat reports/*.md
+  gemma:
+    # Real Gemma on a CPU runner: the smallest model, to prove the Ollama path end to end.
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e '.[dev]'
+      - run: curl -fsSL https://ollama.com/install.sh | sh
+      - run: ollama pull gemma3:1b
+      - run: MORNINGDROP_LIVE=1 MORNINGDROP_LLM_MODEL=gemma3:1b pytest -q -s tests/test_live_gemma.py
