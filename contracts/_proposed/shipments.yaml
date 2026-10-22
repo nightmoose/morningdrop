@@ -19,8 +19,7 @@ ontology:
   - name: shipped_on
     type: string
     required: true
-    enum:
-    - '2026-10-24'
+    pattern: ^\d{4}-\d{2}-\d{2}$
   - name: weight_kg
     type: float
     required: true

@@ -28,10 +28,12 @@ class LLM:
         self.cfg = cfg
         self._mock = mock
 
-    def chat(self, messages: Messages, json_schema: Optional[Dict[str, Any]] = None) -> Any:
+    def chat(self, messages: Messages, json_schema: Optional[Dict[str, Any]] = None,
+             temperature: Optional[float] = None) -> Any:
         """Return the raw provider response (str for ollama/mock, dict for
         openai). AISchemaGate's extract_json understands both shapes."""
         b = self.cfg.backend
+        temp = self.cfg.temperature if temperature is None else temperature
         if b == "mock":
             return (self._mock or default_mock)(messages)
         if b == "ollama":
@@ -40,7 +42,7 @@ class LLM:
                 "messages": messages,
                 "stream": False,
                 "format": json_schema or "json",
-                "options": {"temperature": self.cfg.temperature},
+                "options": {"temperature": temp},
             }
             r = httpx.post(f"{self.cfg.base_url.rstrip('/')}/api/chat", json=body,
                            timeout=self.cfg.timeout_s)
@@ -51,7 +53,7 @@ class LLM:
             body = {
                 "model": self.cfg.model,
                 "messages": messages,
-                "temperature": self.cfg.temperature,
+                "temperature": temp,
                 "response_format": {"type": "json_object"},
             }
             r = httpx.post(f"{self.cfg.base_url.rstrip('/')}/v1/chat/completions", json=body,

@@ -26,6 +26,7 @@ class FileReport:
     examples: Dict[str, List[str]] = field(default_factory=dict)
     error: Optional[str] = None
     inferred_contract: Optional[str] = None
+    rules: Dict[str, Dict[str, Any]] = field(default_factory=dict)  # field -> contract rule
 
     @property
     def status(self) -> str:
@@ -51,6 +52,7 @@ class FileReport:
                     "kind": k,
                     "count": c,
                     "example": (self.examples.get(f"{f}|{k}") or [""])[0],
+                    "contract_rule": self.rules.get(f, {}),
                 }
                 for (f, k), c in self.violations.most_common(top)
             ],
@@ -80,6 +82,8 @@ class Gatekeeper:
         if rep.contract is None:
             return rep
         compiled = self._compiled[rep.contract]
+        for ent in (self.raw[rep.contract].get("ontology") or {}).get("entities") or []:
+            rep.rules[ent["name"]] = {k: v for k, v in ent.items() if k != "name"}
         types = field_types(self.raw[rep.contract])
         is_csv = drop.path.suffix.lower() == ".csv"
         for rec in records:

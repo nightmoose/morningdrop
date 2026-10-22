@@ -116,6 +116,8 @@ def render_markdown(reports: List[FileReport], s: Summary, now: datetime, model:
             for (f, k), c in r.violations.most_common():
                 out.append(f"- `{f}` {k}: {c} row(s) (e.g. {r.examples[f'{f}|{k}'][0]})")
             out.append("")
+    if s.dropped_fixes:
+        out += [f"<sub>AISchemaGate quarantined {len(s.dropped_fixes)} ungrounded suggestion(s) from the model; see the JSON report.</sub>", ""]
     how = (f"written by `{model}` on attempt {s.attempts}, checked by AISchemaGate"
            if s.source == "model" else
            f"template fallback (model output rejected {len(s.rejections)}x by AISchemaGate)")
