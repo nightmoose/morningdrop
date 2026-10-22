@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MorningDrop: your data drops, checked overnight by a local Gemma</title>
+<meta name="description" content="A local overnight agent: DataContractGate checks last night's data drops, a local Gemma model writes a two-line morning summary, and AISchemaGate checks Gemma.">
+<style>
+body{font:17px/1.6 system-ui,-apple-system,Segoe UI,sans-serif;max-width:860px;margin:0 auto;padding:2rem 1.2rem;color:#1d1d1f;background:#fbfaf7}
+h1{font-size:2.3rem;margin:.2rem 0} .tag{font-size:1.25rem;color:#555}
+img{max-width:100%;border-radius:8px;box-shadow:0 4px 20px #0002} pre{background:#24262f;color:#e8e8e8;padding:1rem;border-radius:8px;overflow:auto;font-size:13px;line-height:1.45}
+a.btn{display:inline-block;background:#1d1d1f;color:#fff;padding:.6rem 1.1rem;border-radius:6px;text-decoration:none;margin:.5rem 0}
+ol li{margin:.2rem 0} footer{color:#777;font-size:.9rem;margin-top:3rem}
+</style></head><body>
+<p style="font-size:2.5rem;margin:0">🦥</p>
+<h1>MorningDrop</h1>
+<p class="tag">Your data drops get checked overnight. You get two lines in the morning.</p>
+<a class="btn" href="https://github.com/nightmoose/morningdrop">View the code on GitHub</a>
+<h2>What it is</h2>
+<p>MorningDrop is a small local agent for anyone who wakes up to a folder of nightly exports. While you sleep it:</p>
+<ol>
+<li>finds the files that are new since last night,</li>
+<li>checks every row against a <b>DataContractGate</b> contract, offline,</li>
+<li>asks a <b>local Gemma model</b> (via Ollama) for a two-line summary and suggested fixes,</li>
+<li>checks Gemma's answer with <b>AISchemaGate</b>, plus grounding checks (right status, real files, no made-up numbers), and</li>
+<li>writes a Markdown report and a two-line <code>latest.txt</code>.</li>
+</ol>
+<p>No rows leave your machine. No API keys. If the model gets it wrong or isn't running, a plain template writes a correct report from the same facts. On a quiet night, the model isn't called at all.</p>
+<h2>Demo</h2>
+<img src="demo.gif" alt="Terminal demo: a messy night summarized by local gemma3:4b, then a clean second night">
+<p><small>Recorded on a CPU-only box; the Gemma wait is trimmed.</small></p>
+<h2>A real morning report</h2>
+<p>From <code>gemma3:4b</code> on the sample drops in the repo:</p>
+<pre># Morning report, Wed Oct 21 2026 (real gemma3:4b run on the sample drops, CPU only, 21.7 s)
+
+🔴 **The orders_2026-10-24.csv file failed for 63 rows due to currency and quantity issues.**
+Prioritize fixing the currency and quantity validation rules in the orders contract.
+
+## Suggested fixes
+
+- `orders_2026-10-24.csv` · `currency` · *fix_data*: Correct currency values to USD, EUR, or GBP.
+- `orders_2026-10-24.csv` · `quantity` · *fix_data*: Ensure quantity values are greater than or equal to 1.
+- `orders_2026-10-24.csv` · `customer_id` · *fix_data*: Validate customer_id against pattern: cus_[0-9]{5}
+
+## Drops
+
+| File | Contract | Rows | Passed | Failed | Status |
+|---|---|---:|---:|---:|---|
+| `orders_2026-10-24.csv` | orders | 240 | 177 | 63 | 🔴 |
+| `customers_2026-10-24.jsonl` | customers | 120 | 116 | 4 | 🟡 |
+| `shipments_2026-10-24.csv` | — | 80 | 0 | 0 | 🟡 |
+
+### orders_2026-10-24.csv
+
+- `currency` enum_violation: 60 row(s) (e.g. Field &#x27;currency&#x27; value &quot;usd&quot; not in allowed set: [&quot;USD&quot;, &quot;EUR&quot;, &quot;GBP&quot;])
+- `quantity` range_violation: 2 row(s) (e.g. Field &#x27;quantity&#x27; value -1 is below minimum 1)
+- `customer_id` missing_required_field: 1 row(s) (e.g. Required field &#x27;customer_id&#x27; is missing)
+
+### customers_2026-10-24.jsonl
+
+- `country` pattern_mismatch: 2 row(s) (e.g. Field &#x27;country&#x27; value &quot;usa&quot; does not match required pattern)
+- `email` pattern_mismatch: 1 row(s) (e.g. Field &#x27;email&#x27; value &quot;user33 at example.com&quot; does not match required pattern)
+- `marketing_opt_in` type_mismatch: 1 row(s) (e.g. Field &#x27;marketing_opt_in&#x27; expected type Boolean, got string)
+
+### shipments_2026-10-24.csv
+
+- No contract yet. Drafted one at `contracts/_proposed/shipments.yaml`; review it and move it into `contracts/` to start enforcing.
+
+&lt;sub&gt;Summary written by `gemma3:4b` on attempt 1, checked by AISchemaGate. Rows validated locally with DataContractGate. Nothing left this machine.&lt;/sub&gt;
+</pre>
+<h2>Try it</h2>
+<pre>git clone https://github.com/nightmoose/morningdrop &amp;&amp; cd morningdrop
+python -m venv .venv &amp;&amp; . .venv/bin/activate &amp;&amp; pip install -e .
+ollama pull gemma3:4b
+morningdrop run &amp;&amp; cat reports/latest.txt</pre>
+<footer>MIT licensed. Built on Gemma, Ollama, DataContractGate and AISchemaGate.</footer>
+</body></html>

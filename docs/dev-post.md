@@ -24,7 +24,9 @@ It's for anyone who gets data they don't control: vendor CSVs, storefront export
 
 ## Demo
 
-<!-- TODO(Alex): record a 30–60 s terminal GIF: `ls samples/drops`, `morningdrop run`, `cat reports/latest.txt`, open the .md report. Upload and embed it here. -->
+![MorningDrop demo: a messy night checked by local gemma3:4b, then a clean night](https://raw.githubusercontent.com/nightmoose/morningdrop/main/docs/demo.gif)
+
+*Recorded on a CPU-only box. The ~15–30 s Gemma wait is trimmed.*
 
 The sample drops in the repo have the kind of problems real exports have: a supplier that started sending `usd` instead of `USD` partway through the file, refunds arriving as `quantity = -1`, a customer with `"usa"` as a country code, and a brand-new `shipments` file nobody wrote a contract for. This is a real run with `gemma3:4b` on a CPU-only box:
 
@@ -70,7 +72,7 @@ MIT licensed, with tests (offline, using scripted fake models), CI on Python 3.9
 
 **The pipeline is boring on purpose.** Everything that has a correct answer is done in plain code. The model only does the one thing it's good at: turning `60 × enum_violation on currency` into a sentence a tired human will act on.
 
-- **Validation: DataContractGate.** Each dataset has a YAML contract (types, required fields, regex patterns, enums, ranges). I use the `contractgate` Python package's offline validator, so no server and no network. CSV cells are coerced to the contract's types first. A value that doesn't parse stays a string, so the validator reports an honest `type_mismatch` instead of my code hiding it.
+- **Validation: DataContractGate.** Each dataset has a YAML contract (types, required fields, regex patterns, enums, ranges). The code imports the PyPI package named `contractgate`, which ships DataContractGate's validator; I use it offline, so no server and no network. CSV cells are coerced to the contract's types first. A value that doesn't parse stays a string, so the validator reports an honest `type_mismatch` instead of my code hiding it.
 - **New datasets: draft a contract.** When a file shows up with no contract, MorningDrop infers one (types, ranges, small enums, date patterns), compiles it with DataContractGate to prove it's valid, and saves it to `contracts/_proposed/`. It never enforces a contract you haven't reviewed.
 - **The model: Gemma via Ollama.** MorningDrop sends Gemma counts, field names, violation messages and the contract rule each one broke. It never sends whole rows, and passing rows never go to the model at all. The request uses Ollama's JSON-schema `format` so the model is steered toward the right shape from the start. Any OpenAI-compatible local server (llama.cpp, vLLM, LM Studio) works too.
 - **Checking the model: AISchemaGate.** This is the part I care about most. More on it below.
@@ -95,12 +97,6 @@ If either layer fails, the violations go back to Gemma as a repair prompt, with 
 
 With the final prompt, `gemma3:4b` passes on the first try in about 20–35 seconds on a CPU-only box. The 1B and 270M models still get caught and fall back to the template, which is exactly what should happen.
 
-### Optional: Sentry Agent Tracing
-
-Set `SENTRY_DSN` and install the `sentry` extra, and each run becomes a `gen_ai.invoke_agent` transaction with spans for every DataContractGate check, every Gemma call (tagged with its attempt number) and every AISchemaGate check. That's how you find out which nights needed retries. Without a DSN it's a no-op and nothing is sent.
-
-<!-- TODO(Alex): only keep this section, and the Sentry category below, if you connect a real Sentry project and add a screenshot of one trace. -->
-
 ## Why Does Open Innovation Matter?
 
 For this tool, open weights aren't a nice-to-have. They're the reason it can exist.
@@ -115,14 +111,11 @@ A closed API would probably write slightly nicer sentences. But it would make me
 
 ## The Lazy Payoff
 
-<!-- TODO(Alex): replace with your real numbers. Suggested framing: -->
+MorningDrop saves me 15–30 minutes every morning. It also checks more than I do by hand in that time: every row of every file against its contract, instead of the scroll-and-squint spot check I actually had time for, which is how 60 lowercase currency codes at the bottom of a 240-row file slip through.
 
-Before: about **[N] minutes** every morning opening exports and eyeballing them, and still missing things like 60 lowercase currency codes at the bottom of a 240-row file.
-
-After: two lines in `latest.txt`. On a clean night that's the whole job. On a bad night the report names the file, the field, the row count and a first fix, before I've opened anything. And when a new dataset shows up, its first contract is already drafted for me to review.
+On a clean night, the two lines in `latest.txt` are the whole job. On a bad night, the report names the file, the field, the row count and a first fix before I've opened anything. When a new dataset shows up, its first contract is already drafted for me to review.
 
 ## Prize Categories
 
 - **Best Use of Gemma**: Gemma (via Ollama) writes the summary and the fix suggestions, and the whole design is built around making a small open-weight model safe to trust unattended.
-- **Best Use of a .tech Domain**: <!-- TODO(Alex): keep only if you actually host the demo/report page there, e.g. morningdrop.clankerspanker.tech -->
-- **Best Use of Sentry Agent Tracing**: <!-- TODO(Alex): keep only with a real trace screenshot -->
+- **Best Use of a .tech Domain**: the project page lives at [morningdrop.clankerspanker.tech](https://morningdrop.clankerspanker.tech). <!-- TODO(Alex): keep only once the DNS record is live -->

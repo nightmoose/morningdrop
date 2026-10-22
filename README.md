@@ -13,6 +13,10 @@ nightly exports: vendor CSVs, storefront dumps, CRM extracts. While you sleep it
 
 No rows leave your machine. No API keys. No per-call bill.
 
+![MorningDrop demo: a messy night checked by local gemma3:4b, then a clean night](docs/demo.gif)
+
+<sub>Recorded on a CPU-only box with asciinema + agg; the ~15–30 s Gemma wait is trimmed. Raw cast: [`docs/demo.cast`](docs/demo.cast).</sub>
+
 ```text
 $ morningdrop run
 The orders_2026-10-24.csv file failed for 63 rows due to currency and quantity issues.
@@ -110,18 +114,11 @@ broken, never whole rows. Passing rows are not sent to the model at all.
 Violation messages can quote a bad value (`value "usa" does not match`), which is the
 point, and it all stays on your machine anyway.
 
-## Optional: Sentry Agent Tracing
+## Optional: tracing hook
 
-```bash
-pip install -e '.[sentry]'
-export SENTRY_DSN=...        # your own project
-morningdrop run
-```
-
-Each run is a `gen_ai.invoke_agent` transaction with spans for every
-DataContractGate check, every Gemma call (with attempt number) and every
-AISchemaGate check, so you can see which nights needed retries. Without
-`SENTRY_DSN` this is a no-op and nothing is sent anywhere.
+If `SENTRY_DSN` is set and `sentry-sdk` is installed (`pip install -e '.[sentry]'`),
+each run emits spans for the DataContractGate checks, Gemma calls and AISchemaGate
+checks. Without it, this does nothing and nothing is sent anywhere.
 
 ## Development
 
