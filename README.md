@@ -50,8 +50,8 @@ What we saw while building it (sample drops, CPU only):
 | Model | Result |
 |---|---|
 | `gemma3:4b` | Accepted on the first attempt, about 20–35 s |
-| `gemma3:1b` | Caught by grounding: invented failures in a file with no contract, or numbers copied from the prompt. Fallback report |
-| `gemma3:270m` | Caught by grounding: echoed the instructions as its summary. Fallback report |
+| `gemma3:1b` | Valid JSON, but led with the wrong file on all 3 attempts (earlier prompt versions: invented "12 of 80 rows failed" in a file with no contract). Fallback report |
+| `gemma3:270m` | Echoed the instructions back as its summary and suggested fixing data in a file with no failures. Fallback report |
 
 ## Quick start
 
