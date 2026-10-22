@@ -80,7 +80,7 @@ MIT licensed, with tests (offline, using scripted fake models), CI on Python 3.9
 
 Small local models are great until they aren't. While building this I watched them:
 
-- **`gemma3:270m`** repeat my instructions back as its "summary" ("one sentence, what happened overnight (10-160 chars)") and then call a red night green,
+- **`gemma3:270m`** repeat my instructions back as its "summary" ("one sentence, what happened overnight (10-160 chars)"),
 - **`gemma3:1b`** return perfectly valid JSON that announced *"shipments_2026-10-24.csv: 12 of 80 rows failed"*, for a file with no contract and no failures,
 - **`gemma3:4b`** suggest a quantity range of "1–1000" when the contract says 1–500. It had never been shown the contract, so I started including the rule each violation broke.
 
